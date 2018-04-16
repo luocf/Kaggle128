@@ -1,0 +1,17 @@
+# OSX
+#
+.DS_Store
+
+# Windows
+#
+Thumbs.db
+
+# Xcode
+__pycache__
+checkpoint/
+# Android/IJ
+#
+*.iml
+.idea
+.gradle
+local.properties
