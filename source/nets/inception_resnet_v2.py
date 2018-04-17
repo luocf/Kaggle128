@@ -29,7 +29,6 @@ import tensorflow as tf
 
 slim = tf.contrib.slim
 
-
 def block35(net, scale=1.0, activation_fn=tf.nn.relu, scope=None, reuse=None):
   """Builds the 35x35 resnet block."""
   with tf.variable_scope(scope, 'Block35', [net], reuse=reuse):
