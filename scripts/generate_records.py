@@ -3,7 +3,13 @@ from PIL import Image
 import os
 import json
 import sys
+import argparse
+parser = argparse.ArgumentParser()
 
+# Basic model parameters.
+parser.add_argument('--num_index', type=int, default=0,
+                    help='Number of records')
+FLAGS = parser.parse_args()
 DIR = "../data/train"
 LabelStartIndexFile = "../data/train_label_v2.txt"
 
@@ -30,14 +36,16 @@ def convert_to_records(train_num):
             start_img_id = label_start_map[class_num]["start"]
             end_img_id = label_start_map[class_num]["end"]
             img_id = int(start_img_id) + j + (train_num + 1) * PER_CLASS_IMAGE_NUMS
+
             if img_id > int(end_img_id):
-                img_id = int(start_img_id) + img_id % int(end_img_id)
+                img_id = int(start_img_id) + (img_id - int(end_img_id))% (int(end_img_id) - int(start_img_id))
 
             #组装img name
             img_name = str(img_id)+"_"+class_num+".jpg"
             img_path = os.path.join(dir_path, img_name)
             #判断文件是否存在
             if os.path.exists(img_path):
+                print(img_path)
                 try:
                     # 读取图片并存储
                     img = Image.open(img_path)
@@ -69,4 +77,4 @@ def read_and_decode(filename_queue):
 
     return image, label
 
-convert_to_records(7)
+convert_to_records(FLAGS.num_index)
