@@ -42,7 +42,7 @@ parser.add_argument('--batch_size', type=int, default=64,
 parser.add_argument('--data_dir', type=str, default='../../records/',
                     help='Path to the kaggle-128 data directory.')
 
-parser.add_argument('--train_start_num', type=int, default=6,
+parser.add_argument('--train_start_num', type=int, default=12,
                     help='Path to the kaggle-128 data directory.')
 
 parser.add_argument('--use_fp16', type=bool, default=False,
@@ -65,8 +65,8 @@ NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = kaggle128_input.NUM_EXAMPLES_PER_EPOCH_FOR_EVA
 # Constants describing the training process.
 MOVING_AVERAGE_DECAY = 0.9999     # The decay to use for the moving average.
 NUM_EPOCHS_PER_DECAY = 350     # Epochs after which learning rate decays.
-LEARNING_RATE_DECAY_FACTOR = 0.999  # Learning rate decay factor.
-INITIAL_LEARNING_RATE = 0.3       # Initial learning rate.
+LEARNING_RATE_DECAY_FACTOR = 0.94  # Learning rate decay factor. init value is 0.999
+INITIAL_LEARNING_RATE = 0.1     # Initial learning rate. init value is 0.3
 
 # If a model is trained with multiple GPUs, prefix all Op names with tower_name
 # to differentiate the operations. Note that this prefix is removed from the

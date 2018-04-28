@@ -128,13 +128,10 @@ def distorted_inputs(data_dir, train_start_num, batch_size):
 
     # Because these operations are not commutative, consider randomizing
     # the order their operation.
-    distorted_image = tf.image.random_brightness(distorted_image,
-                                                 max_delta=0.25)
-    distorted_image = tf.image.random_contrast(distorted_image,
-                                               lower=0.2, upper=0.8)
-
-    # Subtract off the mean and divide by the variance of the pixels.
-    # float_image = tf.image.per_image_whitening(distorted_image)
+    #distorted_image = tf.image.random_brightness(distorted_image,
+    #                                             max_delta=0.25)
+    #distorted_image = tf.image.random_contrast(distorted_image,
+    #                                           lower=0.2, upper=0.8)
 
     # Ensure that the random shuffling has good mixing properties.
     min_fraction_of_examples_in_queue = 0.2

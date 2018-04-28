@@ -33,7 +33,7 @@ parser.add_argument('--eval_dir', type=str, default='/Users/luocf/workspace/Kagg
 parser.add_argument('--eval_data', type=str, default='test',
                     help='Either `test` or `train_eval`.')
 
-parser.add_argument('--checkpoint_dir', type=str, default='/Users/luocf/workspace/Kaggle/source/inception_v2/checkpoint',
+parser.add_argument('--checkpoint_dir', type=str, default='/Users/luocf/workspace/Kaggle/source/inception_v2/eval_checkpoint',
                     help='Directory where to read model checkpoints.')
 
 parser.add_argument('--eval_interval_secs', type=int, default=60 * 5,
@@ -44,7 +44,6 @@ parser.add_argument('--num_examples', type=int, default=6400,
 
 parser.add_argument('--run_once', type=bool, default=False,
                     help='Whether to run eval only once.')
-
 
 def eval_once(saver, summary_writer, top_k_op, summary_op):
     """Run Eval once.
@@ -102,7 +101,7 @@ def eval_once(saver, summary_writer, top_k_op, summary_op):
 
 
 def evaluate():
-    """Eval KAGGLE-100 for a number of steps."""
+    """Eval KAGGLE-128 for a number of steps."""
     with tf.Graph().as_default() as g:
         # Get images and labels for KAGGLE-128.
         eval_data = FLAGS.eval_data == 'test'
@@ -111,6 +110,7 @@ def evaluate():
         # Build a Graph that computes the logits predictions from the
         # inference model.
         logits, end_points = inception.inception_resnet_v2(images, num_classes=kaggle128.NUM_CLASSES,
+                                                           create_aux_logits=False,
                                                            is_training=False)
         # Calculate predictions.
         top_k_op = tf.nn.in_top_k(logits, labels, 1)
@@ -126,11 +126,11 @@ def evaluate():
 
         summary_writer = tf.summary.FileWriter(FLAGS.eval_dir, g)
 
-        while True:
-            eval_once(saver, summary_writer, top_k_op, summary_op)
-            if FLAGS.run_once:
-                break
-            time.sleep(FLAGS.eval_interval_secs)
+        #while True:
+        eval_once(saver, summary_writer, top_k_op, summary_op)
+        #     if FLAGS.run_once:
+        #         break
+        #     time.sleep(FLAGS.eval_interval_secs)
 
 def main(argv=None):  # pylint: disable=unused-argument
     evaluate()
