@@ -14,7 +14,8 @@
 # ==============================================================================
 
 """Evaluation for KAGGLE-128."""
-
+import csv
+import os
 from datetime import datetime
 import math
 import time
@@ -30,7 +31,7 @@ parser = kaggle128.parser
 parser.add_argument('--eval_dir', type=str, default='/Users/luocf/workspace/Kaggle/records',
                     help='Directory where to write event logs.')
 
-parser.add_argument('--eval_data', type=str, default='eval',
+parser.add_argument('--eval_data', type=str, default='test',
                     help='Either `test` or `train_eval`.')
 
 parser.add_argument('--checkpoint_dir', type=str, default='/Users/luocf/workspace/Kaggle/source/inception_v2/eval_checkpoint',
@@ -39,19 +40,17 @@ parser.add_argument('--checkpoint_dir', type=str, default='/Users/luocf/workspac
 parser.add_argument('--eval_interval_secs', type=int, default=60 * 5,
                     help='How often to run the eval.')
 
-parser.add_argument('--num_examples', type=int, default=6400,
+parser.add_argument('--num_examples', type=int, default=12800,
                     help='Number of examples to run.')
 
 parser.add_argument('--run_once', type=bool, default=False,
                     help='Whether to run eval only once.')
 
-def eval_once(saver, summary_writer, top_k_op, summary_op):
+def eval_once(saver, predictions, labels):
     """Run Eval once.
     Args:
       saver: Saver.
-      summary_writer: Summary writer.
-      top_k_op: Top K op.
-      summary_op: Summary op.
+      predictions: Top K op.
     """
     with tf.Session() as sess:
         ckpt = tf.train.get_checkpoint_state(FLAGS.checkpoint_dir)
@@ -74,25 +73,28 @@ def eval_once(saver, summary_writer, top_k_op, summary_op):
             for qr in tf.get_collection(tf.GraphKeys.QUEUE_RUNNERS):
                 threads.extend(qr.create_threads(sess, coord=coord, daemon=True,
                                                  start=True))
-
             num_iter = int(math.ceil(FLAGS.num_examples / FLAGS.batch_size))
-            true_count = 0  # Counts the number of correct predictions.
-            total_sample_count = num_iter * FLAGS.batch_size
             step = 0
+            img_id = 0
+            outfile = os.path.join(FLAGS.eval_dir, "submission_randomlabel.csv")
+            out = open(outfile, 'w', newline='')
+            csv_writer = csv.writer(out,dialect='excel')
+            csv_writer.writerow(['id','predicted'])
             while step < num_iter and not coord.should_stop():
-                predictions = sess.run([top_k_op])
-                true_count += np.sum(predictions)
-                print(predictions)
+                output = sess.run(predictions)
+                print(labels)
+                for label in output:
+                    img_id = img_id+1
+                    result = str(img_id)+','+str(label+1)
+                    print(result)
+                    csv_writer.writerow([str(img_id),str(label+1)])
+                #true_count += np.sum(output)
+                #print(predictions)
                 step += 1
 
             # Compute precision @ 1.
-            precision = true_count / total_sample_count
-            print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
-
-            summary = tf.Summary()
-            summary.ParseFromString(sess.run(summary_op))
-            summary.value.add(tag='Precision @ 1', simple_value=precision)
-            summary_writer.add_summary(summary, global_step)
+            #precision = true_count / total_sample_count
+            #print('%s: precision @ 1 = %.3f' % (datetime.now(), precision))
         except Exception as e:  # pylint: disable=broad-except
             coord.request_stop(e)
 
@@ -113,7 +115,7 @@ def evaluate():
                                                            create_aux_logits=False,
                                                            is_training=False)
         # Calculate predictions.
-        top_k_op = tf.nn.in_top_k(logits, labels, 1)
+        predictions = tf.argmax(logits, 1)
 
         # Restore the moving average version of the learned variables for eval.
         variable_averages = tf.train.ExponentialMovingAverage(
@@ -121,16 +123,7 @@ def evaluate():
         variables_to_restore = variable_averages.variables_to_restore()
         saver = tf.train.Saver(variables_to_restore)
 
-        # Build the summary operation based on the TF collection of Summaries.
-        summary_op = tf.summary.merge_all()
-
-        summary_writer = tf.summary.FileWriter(FLAGS.eval_dir, g)
-
-        #while True:
-        eval_once(saver, summary_writer, top_k_op, summary_op)
-        #     if FLAGS.run_once:
-        #         break
-        #     time.sleep(FLAGS.eval_interval_secs)
+        eval_once(saver, predictions, labels)
 
 def main(argv=None):  # pylint: disable=unused-argument
     evaluate()

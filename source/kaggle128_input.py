@@ -25,9 +25,9 @@ IMAGE_SIZE = 299
 
 # Global constants describing the KAGGLE-128 data set.
 NUM_CLASSES = 128
-NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 10000
+NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN = 200000
 NUM_EXAMPLES_PER_EPOCH_FOR_EVAL = 6400
-
+NUM_EXAMPLES_PER_EPOCH_FOR_TEST = 12647
 def read_kaggle128(filename_queue):
     class KAGGLE128Record(object):
         pass
@@ -99,7 +99,11 @@ def distorted_inputs(data_dir, train_start_num, batch_size):
       images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
       labels: Labels. 1D tensor of [batch_size] size.
     """
-    filenames = [os.path.join(data_dir, 'Kaggle_Train_' + str(train_start_num) + '.tfrecords')]
+    if train_start_num != -1:
+        part_name = str(train_start_num)
+    else:
+        part_name = 'all'
+    filenames = [os.path.join(data_dir, 'Kaggle_Train_' + part_name + '.tfrecords')]
     for f in filenames:
         if not tf.gfile.Exists(f):
             raise ValueError('Failed to find file: ' + f)
@@ -128,10 +132,10 @@ def distorted_inputs(data_dir, train_start_num, batch_size):
 
     # Because these operations are not commutative, consider randomizing
     # the order their operation.
-    #distorted_image = tf.image.random_brightness(distorted_image,
-    #                                             max_delta=0.25)
-    #distorted_image = tf.image.random_contrast(distorted_image,
-    #                                           lower=0.2, upper=0.8)
+    distorted_image = tf.image.random_brightness(distorted_image,
+                                                 max_delta=0.25)
+    distorted_image = tf.image.random_contrast(distorted_image,
+                                               lower=0.2, upper=0.8)
 
     # Ensure that the random shuffling has good mixing properties.
     min_fraction_of_examples_in_queue = 0.2
@@ -155,12 +159,16 @@ def inputs(eval_data, data_dir, batch_size):
       images: Images. 4D tensor of [batch_size, IMAGE_SIZE, IMAGE_SIZE, 3] size.
       labels: Labels. 1D tensor of [batch_size] size.
     """
-    if not eval_data:
-        filenames = [os.path.join(data_dir, 'kaggle_train.tfrecords')]
-        num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
-    else:
+    if eval_data == "eval":
         filenames = [os.path.join(data_dir, 'Kaggle_Val.tfrecords')]
         num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_EVAL
+    elif eval_data == "test":
+        filenames = [os.path.join(data_dir, 'kaggle_test.tfrecords')]
+        num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TEST
+    else:
+        filenames = [os.path.join(data_dir, 'kaggle_train.tfrecords')]
+        num_examples_per_epoch = NUM_EXAMPLES_PER_EPOCH_FOR_TRAIN
+
 
     for f in filenames:
         if not tf.gfile.Exists(f):

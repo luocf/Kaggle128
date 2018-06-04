@@ -7,7 +7,7 @@ import argparse
 parser = argparse.ArgumentParser()
 
 # Basic model parameters.
-parser.add_argument('--num_index', type=int, default=0,
+parser.add_argument('--num_index', type=int, default=5,
                     help='Number of records')
 FLAGS = parser.parse_args()
 DIR = "../data/train"
@@ -15,7 +15,7 @@ LabelStartIndexFile = "../data/train_label_v2.txt"
 
 CLASS_NUMS = 128 #分类数
 IMAGE_SIZE = 299 #图片大小
-PER_CLASS_IMAGE_NUMS = 100
+PER_CLASS_IMAGE_NUMS = 128
 #说明：
 # 将图片转换为records，每次每个分类提取100张图片，提取图片的起始位置由start_index指定，初始为0
 #files_path 传入文件所在路径
